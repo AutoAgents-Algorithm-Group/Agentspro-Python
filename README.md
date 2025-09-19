@@ -1,15 +1,15 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/-autoagents_graph-000000?style=for-the-badge&labelColor=faf9f6&color=faf9f6&logoColor=000000" alt="AutoAgents Graph Python SDK" width="380"/>
+<img src="https://img.shields.io/badge/-agentspro-000000?style=for-the-badge&labelColor=faf9f6&color=faf9f6&logoColor=000000" alt="Agentspro Python SDK" width="380"/>
 
-<h4>The AI Workflow Cross-Platform Engine</h4>
+<h4>The AI Agent Decorator SDK for Agentspro</h4>
 
 **English** | [简体中文](README-CN.md)
 
-<a href="https://pypi.org/project/autoagents-graph">
+<a href="https://pypi.org/project/agentspro">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/pypi/v/autoagents-graph.svg?style=for-the-badge" />
-    <img alt="PyPI version" src="https://img.shields.io/pypi/v/autoagents-graph.svg?style=for-the-badge" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/pypi/v/agentspro.svg?style=for-the-badge" />
+    <img alt="PyPI version" src="https://img.shields.io/pypi/v/agentspro.svg?style=for-the-badge" />
   </picture>
 </a>
 <picture>
@@ -21,93 +21,176 @@
 
 ## Table of Contents
 
-- [Why AutoAgents Graph?](#why-autoagents-graph)
+- [Why Agentspro?](#why-agentspro)
 - [Quick Start](#quick-start)
-- [Architecture](#architecture)
+- [Core Features](#core-features)
+- [Examples](#examples)
 - [Contributing](#contributing)
 - [License](#license)
 
-## Why AutoAgents Graph?
+## Why Agentspro?
 
-AutoAgents Graph is a revolutionary AI workflow cross-platform engine that allows you to freely convert workflows between different AI platforms through a unified API. It enables seamless navigation through complex AI ecosystems with intelligent workflow orchestration.
+Agentspro is a powerful Python SDK that enables you to seamlessly connect your local Python functions to the Agentspro platform through elegant decorators. With just a simple `@agent(name=...)` decorator, you can transform any Python function into a cloud-accessible AI agent.
 
-- **Zero Learning Curve**: Unified API design - learn once, use everywhere
-- **Type Safety**: Complete type validation based on Pydantic, ensuring secure workflow transmission
-- **Platform Compatibility**: Supports mainstream platforms like Dify, Agentify, with continuous expansion
-- **Intelligent Conversion**: Automatic node type recognition and conversion, with precise workflow translation
+- **Zero Configuration**: Simply add decorators to your functions
+- **Seamless Integration**: Direct connection to Agentspro platform APIs
+- **Type Safety**: Complete type validation based on Pydantic
+- **Real-time Sync**: Automatic function registration and updates
 
 ## Quick Start
 
 ### Prerequisites
 - Python 3.11+
+- Agentspro account (sign up at [agentspro.com](https://agentspro.com))
 
 ### Installation
 ```bash
-pip install autoagents-graph
+pip install agentspro
+```
+
+### Basic Usage
+
+```python
+from agentspro import agent, init_agentspro
+
+# Initialize with your API credentials
+init_agentspro(
+    api_key="your_api_key",
+    api_secret="your_api_secret"
+)
+
+# Transform any function into an AI agent
+@agent(name="weather_checker")
+def get_weather(city: str) -> str:
+    """Get weather information for a specific city."""
+    # Your function logic here
+    return f"The weather in {city} is sunny and 25°C"
+
+@agent(name="calculator")
+def calculate(expression: str) -> float:
+    """Calculate mathematical expressions."""
+    return eval(expression)  # Note: Use safe_eval in production
+```
+
+## Core Features
+
+### Decorator-Based Agent Registration
+```python
+from agentspro import agent
+
+@agent(
+    name="data_processor",
+    description="Process and analyze data",
+    tags=["data", "analysis"],
+    version="1.0.0"
+)
+def process_data(data: list, operation: str) -> dict:
+    """Process data with specified operation."""
+    # Your processing logic
+    return {"result": "processed", "count": len(data)}
+```
+
+### Automatic Type Validation
+```python
+from typing import List, Dict
+from agentspro import agent
+
+@agent(name="user_manager")
+def create_user(
+    name: str, 
+    age: int, 
+    skills: List[str],
+    metadata: Dict[str, str] = None
+) -> Dict[str, any]:
+    """Create a new user with validation."""
+    return {
+        "id": "user_123",
+        "name": name,
+        "age": age,
+        "skills": skills,
+        "metadata": metadata or {}
+    }
+```
+
+### Configuration Options
+```python
+from agentspro import agent, AgentConfig
+
+@agent(
+    name="advanced_agent",
+    config=AgentConfig(
+        timeout=30,
+        retry_attempts=3,
+        cache_enabled=True,
+        rate_limit=100
+    )
+)
+def advanced_function(param: str) -> str:
+    """An advanced agent with custom configuration."""
+    return f"Processed: {param}"
 ```
 
 ## Examples
 
-AutoAgents Graph provides three main usage patterns:
-
-#### Text2Workflow - Cross-Platform Converter
+### Data Processing Agent
 ```python
-from autoagents_graph import Text2Workflow
-from autoagents_graph.dify import DifyStartState, DifyLLMState, DifyEndState, START, END
+from agentspro import agent
+import pandas as pd
 
-# Create Dify platform workflow
-workflow = Text2Workflow(
-    platform="dify",
-    app_name="Smart Assistant"
-)
-
-# Add nodes
-workflow.add_node(id=START, state=DifyStartState(title="Start"))
-workflow.add_node(id="ai", state=DifyLLMState(title="AI Response"))
-workflow.add_node(id=END, state=DifyEndState(title="End"))
-
-# Compile workflow
-workflow.compile()
+@agent(name="csv_analyzer")
+def analyze_csv(file_path: str) -> dict:
+    """Analyze CSV file and return statistics."""
+    df = pd.read_csv(file_path)
+    return {
+        "rows": len(df),
+        "columns": len(df.columns),
+        "summary": df.describe().to_dict()
+    }
 ```
 
-#### FlowGraph - Agentify Native Builder
+### Web Scraping Agent
 ```python
-from autoagents_graph.agentify import FlowGraph, START
-from autoagents_graph.agentify.types import QuestionInputState, AiChatState
+from agentspro import agent
+import requests
+from bs4 import BeautifulSoup
 
-# Create Agentify workflow
-flow = FlowGraph(
-    personal_auth_key="your_key",
-    personal_auth_secret="your_secret"
-)
-
-# Build intelligent conversation flow
-flow.add_node(START, state=QuestionInputState(inputText=True))
-flow.add_node("ai", state=AiChatState(model="doubao-deepseek-v3"))
-flow.add_edge(START, "ai")
-
-# Publish to platform
-flow.compile(name="Smart Chat Assistant")
+@agent(name="web_scraper")
+def scrape_title(url: str) -> str:
+    """Extract title from a webpage."""
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    return soup.title.string if soup.title else "No title found"
 ```
 
-### Supported Node Types
+### AI Integration Agent
+```python
+from agentspro import agent
+from openai import OpenAI
 
-#### Agentify Platform Nodes
-- **QuestionInputState** - User input node
-- **AiChatState** - AI conversation node
-- **ConfirmReplyState** - Confirmation reply node
-- **KnowledgeSearchState** - Knowledge base search node
-- **Pdf2MdState** - Document parsing node
-- **AddMemoryVariableState** - Memory variable node
-- **InfoClassState** - Information classification node
-- **CodeFragmentState** - Code execution node
-- **ForEachState** - Loop iteration node
+client = OpenAI()
 
-#### Dify Platform Nodes
-- **DifyStartState** - Start node
-- **DifyLLMState** - LLM node
-- **DifyKnowledgeRetrievalState** - Knowledge retrieval node
-- **DifyEndState** - End node
+@agent(name="text_summarizer")
+def summarize_text(text: str, max_length: int = 100) -> str:
+    """Summarize text using AI."""
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "Summarize the following text concisely."},
+            {"role": "user", "content": text}
+        ],
+        max_tokens=max_length
+    )
+    return response.choices[0].message.content
+```
+
+## Platform Integration
+
+Once you've decorated your functions with `@agent`, they automatically become available on the Agentspro platform where you can:
+
+- **Monitor Usage**: Track function calls and performance
+- **Manage Versions**: Deploy and rollback different versions
+- **Configure Access**: Set permissions and rate limits
+- **View Analytics**: Analyze usage patterns and optimization opportunities
 
 ## Contributing
 
@@ -125,7 +208,7 @@ We welcome community contributions! Please check the contribution guidelines for
 - New feature development
 - Documentation improvements
 - Test cases
-- Platform adapters
+- Platform integrations
 
 ## License
 

@@ -1,15 +1,15 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/-autoagents_graph-000000?style=for-the-badge&labelColor=faf9f6&color=faf9f6&logoColor=000000" alt="AutoAgents Graph Python SDK" width="380"/>
+<img src="https://img.shields.io/badge/-agentspro-000000?style=for-the-badge&labelColor=faf9f6&color=faf9f6&logoColor=000000" alt="Agentspro Python SDK" width="380"/>
 
-<h4>AI工作流跨平台转换引擎</h4>
+<h4>Agentspro AI智能体装饰器SDK</h4>
 
 [English](README.md) | **简体中文**
 
-<a href="https://pypi.org/project/autoagents-graph">
+<a href="https://pypi.org/project/agentspro">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/pypi/v/autoagents-graph.svg?style=for-the-badge" />
-    <img alt="PyPI version" src="https://img.shields.io/pypi/v/autoagents-graph.svg?style=for-the-badge" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/pypi/v/agentspro.svg?style=for-the-badge" />
+    <img alt="PyPI version" src="https://img.shields.io/pypi/v/agentspro.svg?style=for-the-badge" />
   </picture>
 </a>
 <picture>
@@ -21,94 +21,177 @@
 
 ## 目录
 
-- [为什么选择AutoAgents Graph？](#为什么选择autoagents-graph)
+- [为什么选择Agentspro？](#为什么选择agentspro)
 - [快速开始](#快速开始)
+- [核心特性](#核心特性)
 - [示例](#示例)
-- [支持的节点类型](#支持的节点类型)
+- [平台集成](#平台集成)
 - [贡献指南](#贡献指南)
 - [许可证](#许可证)
 
-## 为什么选择AutoAgents Graph？
+## 为什么选择Agentspro？
 
-AutoAgents Graph 是一个革命性的AI工作流跨平台转换引擎，让你可以通过统一的API在不同AI平台间自由转换工作流。它通过智能的工作流编排，帮助你在复杂的AI生态系统中无缝穿梭。
+Agentspro 是一个强大的Python SDK，让你可以通过优雅的装饰器将本地Python函数无缝连接到Agentspro平台。只需简单的 `@agent(name=...)` 装饰器，就能将任何Python函数转换为云端可访问的AI智能体。
 
-- **零学习成本**：统一的API设计，一次学习，处处使用
-- **类型安全**：基于Pydantic的完整类型验证，确保工作流安全传递
-- **平台兼容**：支持Dify、Agentify等主流平台，持续扩展中
-- **智能转换**：节点类型自动识别和转换，实现精准的工作流翻译
+- **零配置**：只需为函数添加装饰器
+- **无缝集成**：直接连接到Agentspro平台API
+- **类型安全**：基于Pydantic的完整类型验证
+- **实时同步**：自动函数注册和更新
 
 ## 快速开始
 
 ### 系统要求
 - Python 3.11+
+- Agentspro账号（在 [agentspro.com](https://agentspro.com) 注册）
 
 ### 安装
 ```bash
-pip install autoagents-graph
+pip install agentspro
+```
+
+### 基础使用
+
+```python
+from agentspro import agent, init_agentspro
+
+# 使用你的API凭证初始化
+init_agentspro(
+    api_key="your_api_key",
+    api_secret="your_api_secret"
+)
+
+# 将任何函数转换为AI智能体
+@agent(name="weather_checker")
+def get_weather(city: str) -> str:
+    """获取指定城市的天气信息。"""
+    # 你的函数逻辑
+    return f"{city}的天气是晴天，25°C"
+
+@agent(name="calculator")
+def calculate(expression: str) -> float:
+    """计算数学表达式。"""
+    return eval(expression)  # 注意：生产环境请使用safe_eval
+```
+
+## 核心特性
+
+### 基于装饰器的智能体注册
+```python
+from agentspro import agent
+
+@agent(
+    name="data_processor",
+    description="处理和分析数据",
+    tags=["数据", "分析"],
+    version="1.0.0"
+)
+def process_data(data: list, operation: str) -> dict:
+    """使用指定操作处理数据。"""
+    # 你的处理逻辑
+    return {"result": "已处理", "count": len(data)}
+```
+
+### 自动类型验证
+```python
+from typing import List, Dict
+from agentspro import agent
+
+@agent(name="user_manager")
+def create_user(
+    name: str, 
+    age: int, 
+    skills: List[str],
+    metadata: Dict[str, str] = None
+) -> Dict[str, any]:
+    """创建新用户并进行验证。"""
+    return {
+        "id": "user_123",
+        "name": name,
+        "age": age,
+        "skills": skills,
+        "metadata": metadata or {}
+    }
+```
+
+### 配置选项
+```python
+from agentspro import agent, AgentConfig
+
+@agent(
+    name="advanced_agent",
+    config=AgentConfig(
+        timeout=30,
+        retry_attempts=3,
+        cache_enabled=True,
+        rate_limit=100
+    )
+)
+def advanced_function(param: str) -> str:
+    """具有自定义配置的高级智能体。"""
+    return f"已处理: {param}"
 ```
 
 ## 示例
 
-AutoAgents Graph 提供三种主要使用方式：
-
-#### Text2Workflow - 跨平台转换器
+### 数据处理智能体
 ```python
-from autoagents_graph import Text2Workflow
-from autoagents_graph.dify import DifyStartState, DifyLLMState, DifyEndState, START, END
+from agentspro import agent
+import pandas as pd
 
-# 创建Dify平台工作流
-workflow = Text2Workflow(
-    platform="dify",
-    app_name="智能助手"
-)
-
-# 添加节点
-workflow.add_node(id=START, state=DifyStartState(title="开始"))
-workflow.add_node(id="ai", state=DifyLLMState(title="AI回答"))
-workflow.add_node(id=END, state=DifyEndState(title="结束"))
-
-# 编译工作流
-workflow.compile()
+@agent(name="csv_analyzer")
+def analyze_csv(file_path: str) -> dict:
+    """分析CSV文件并返回统计信息。"""
+    df = pd.read_csv(file_path)
+    return {
+        "rows": len(df),
+        "columns": len(df.columns),
+        "summary": df.describe().to_dict()
+    }
 ```
 
-#### FlowGraph - Agentify原生构建器
+### 网页抓取智能体
 ```python
-from autoagents_graph.agentify import FlowGraph, START
-from autoagents_graph.agentify.types import QuestionInputState, AiChatState
+from agentspro import agent
+import requests
+from bs4 import BeautifulSoup
 
-# 创建Agentify工作流
-flow = FlowGraph(
-    personal_auth_key="your_key",
-    personal_auth_secret="your_secret"
-)
-
-# 构建智能对话流程
-flow.add_node(START, state=QuestionInputState(inputText=True))
-flow.add_node("ai", state=AiChatState(model="doubao-deepseek-v3"))
-flow.add_edge(START, "ai")
-
-# 发布到平台
-flow.compile(name="智能对话助手")
+@agent(name="web_scraper")
+def scrape_title(url: str) -> str:
+    """从网页提取标题。"""
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    return soup.title.string if soup.title else "未找到标题"
 ```
 
-### 支持的节点类型
+### AI集成智能体
+```python
+from agentspro import agent
+from openai import OpenAI
 
-#### Agentify平台节点
-- **QuestionInputState** - 用户输入节点
-- **AiChatState** - AI对话节点
-- **ConfirmReplyState** - 确认回复节点
-- **KnowledgeSearchState** - 知识库搜索节点
-- **Pdf2MdState** - 文档解析节点
-- **AddMemoryVariableState** - 记忆变量节点
-- **InfoClassState** - 信息分类节点
-- **CodeFragmentState** - 代码执行节点
-- **ForEachState** - 循环迭代节点
+client = OpenAI()
 
-#### Dify平台节点
-- **DifyStartState** - 开始节点
-- **DifyLLMState** - LLM节点
-- **DifyKnowledgeRetrievalState** - 知识检索节点
-- **DifyEndState** - 结束节点
+@agent(name="text_summarizer")
+def summarize_text(text: str, max_length: int = 100) -> str:
+    """使用AI总结文本。"""
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "请简洁地总结以下文本。"},
+            {"role": "user", "content": text}
+        ],
+        max_tokens=max_length
+    )
+    return response.choices[0].message.content
+```
+
+## 平台集成
+
+当你用 `@agent` 装饰器装饰函数后，它们会自动在Agentspro平台上可用，你可以：
+
+- **监控使用情况**：跟踪函数调用和性能
+- **管理版本**：部署和回滚不同版本
+- **配置访问权限**：设置权限和速率限制
+- **查看分析数据**：分析使用模式和优化机会
 
 ## 贡献指南
 
@@ -126,7 +209,7 @@ flow.compile(name="智能对话助手")
 - 新功能开发
 - 文档改进
 - 测试用例
-- 平台适配器
+- 平台集成
 
 ## 许可证
 

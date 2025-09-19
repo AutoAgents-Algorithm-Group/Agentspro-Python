@@ -1,7 +1,7 @@
 [project]
-name = "autoagents-graph"
-version = "0.1.2"
-description = "The AI Workflow Cross-Platform Engine"
+name = "agentspro"
+version = "0.1.1"
+description = "The AI Agent Decorator SDK for Agentspro platform integration"
 readme = "README.md"
 authors = [
     { name = "Hehua Fan", email = "forhheart5532@gmail.com" }
@@ -14,10 +14,10 @@ dependencies = [
 ]
 
 [project.scripts]
-autoagents-graph-python-sdk = "autoagents-graph:main"
+agentspro-python-sdk = "agentspro:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/autoagents_graph"]
+packages = ["src/agentspro"]
 
 [build-system]
 requires = ["hatchling"]
